@@ -15,6 +15,7 @@
     - user
     - docker
     - devtools
-    # - jvm
-    # - python-ai
+    #- jvm
+    #- python-ai
     - security
+    - node-web

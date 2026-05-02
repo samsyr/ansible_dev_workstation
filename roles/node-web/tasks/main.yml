@@ -1,0 +1,33 @@
+---
+- name: Install nvm
+  become: true
+  become_user: "{{ dev_user }}"
+  ansible.builtin.shell: |
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+  args:
+    creates: "{{ dev_home }}/.nvm"
+
+- name: Enable nvm in bash
+  ansible.builtin.copy:
+    dest: "{{ dev_home }}/.bashrc.d/nvm.sh"
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0644"
+    content: |
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+      [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+- name: Install Node LTS and pnpm
+  become: true
+  become_user: "{{ dev_user }}"
+  ansible.builtin.shell: |
+    export NVM_DIR="{{ dev_home }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+    nvm install --lts
+    nvm use --lts
+
+    npm install -g pnpm
+  args:
+    executable: /bin/bash
