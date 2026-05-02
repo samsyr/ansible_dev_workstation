@@ -13,6 +13,7 @@
     - "{{ dev_home }}/.bashrc.d"
     - "{{ dev_home }}/.local/bin"
     - "{{ dev_home }}/.config"
+    - "{{ dev_home }}/.config/tealdeer"
 
 - name: Configure global git settings
   become: true
@@ -53,6 +54,8 @@
     mode: "0644"
 
 - name: Install Starship prompt for user
+  become: true
+  become_user: "{{ dev_user }}"
   ansible.builtin.shell: |
     curl -sS https://starship.rs/install.sh | sh -s -- -y -b "{{ dev_home }}/.local/bin"
   args:
@@ -99,17 +102,6 @@
         eval "$(starship init bash)"
       fi
 
-
-# ---- TLDR (tealdeer) setup ----
-
-- name: Ensure tealdeer config directory exists
-  ansible.builtin.file:
-    path: "{{ dev_home }}/.config/tealdeer"
-    state: directory
-    owner: "{{ dev_user }}"
-    group: "{{ dev_user }}"
-    mode: "0755"
-
 - name: Create tealdeer config
   ansible.builtin.copy:
     dest: "{{ dev_home }}/.config/tealdeer/config.toml"
@@ -120,9 +112,10 @@
       [updates]
       auto_update = true
 
-- name: Download tealdeer cache
+- name: Download tealdeer cache if missing
   become: true
   become_user: "{{ dev_user }}"
   ansible.builtin.command:
     cmd: tldr --update
-  changed_when: false
+  args:
+    creates: "{{ dev_home }}/.cache/tealdeer"

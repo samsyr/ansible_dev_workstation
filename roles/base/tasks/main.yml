@@ -4,9 +4,10 @@
     update_cache: true
     cache_valid_time: 3600
 
-- name: Install minimal base packages
+- name: Install base and CLI packages
   ansible.builtin.apt:
     name:
+      # --- base ---
       - git
       - curl
       - wget
@@ -29,3 +30,4 @@
       - ncdu
       - tealdeer
     state: present
+    install_recommends: false
