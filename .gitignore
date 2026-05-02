@@ -1,0 +1,25 @@
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Editor ---
+.vscode/
+.idea/
+
+# --- Python / Ansible ---
+__pycache__/
+*.pyc
+*.retry
+
+# --- Ansible artifacts ---
+*.log
+
+# --- Temporary ---
+*.swp
+*.swo
+*~
+
+# --- Secrets (future-proof) ---
+*.env
+*.secret
+group_vars/*/vault.yml

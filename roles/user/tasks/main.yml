@@ -1,5 +1,5 @@
 ---
-- name: Create personal dev directories
+- name: Create personal user directories
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -11,31 +11,21 @@
     - "{{ dev_home }}/bin"
     - "{{ dev_home }}/tmp"
     - "{{ dev_home }}/.bashrc.d"
+    - "{{ dev_home }}/.local/bin"
+    - "{{ dev_home }}/.config"
 
-# ---- GIT CONFIG ----
-
-- name: Set git user name
-  ansible.builtin.git_config:
-    name: user.name
-    value: "Sampo Yrjänäinen"
+- name: Configure global git settings
+  become: true
+  become_user: "{{ dev_user }}"
+  community.general.git_config:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
     scope: global
-  become: false
-
-- name: Set git user email
-  ansible.builtin.git_config:
-    name: user.email
-    value: "sampo.yrjanainen@gmail.com"
-    scope: global
-  become: false
-
-- name: Set default git branch
-  ansible.builtin.git_config:
-    name: init.defaultBranch
-    value: "main"
-    scope: global
-  become: false
-
-# ---- BASH ALIASES ----
+  loop:
+    - { name: "user.name", value: "{{ git_user_name }}" }
+    - { name: "user.email", value: "{{ git_user_email }}" }
+    - { name: "init.defaultBranch", value: "main" }
+    - { name: "pull.rebase", value: "false" }
 
 - name: Create dev aliases file
   ansible.builtin.copy:
@@ -50,70 +40,23 @@
       alias ga='git add'
       alias gc='git commit'
       alias gp='git push'
-      alias k='kubectl'
-      alias d='docker'
-
-# ---- LOAD .bashrc.d ----
+      alias cat='batcat'
+      alias fd='fdfind'
 
 - name: Ensure .bashrc loads .bashrc.d
   ansible.builtin.lineinfile:
     path: "{{ dev_home }}/.bashrc"
     line: 'for f in ~/.bashrc.d/*.sh; do [ -r "$f" ] && . "$f"; done'
     state: present
-
-
-# ---- GIT PROMPT ----
-
-- name: Ensure git-prompt is available
-  ansible.builtin.apt:
-    name: git
-    state: present
-
-- name: Enable git branch in bash prompt
-  ansible.builtin.copy:
-    dest: "{{ dev_home }}/.bashrc.d/git-prompt.sh"
     owner: "{{ dev_user }}"
     group: "{{ dev_user }}"
     mode: "0644"
-    content: |
-      # Git branch in prompt
-
-      if [ -f /usr/lib/git-core/git-sh-prompt ]; then
-          . /usr/lib/git-core/git-sh-prompt
-      elif [ -f /usr/share/git/completion/git-prompt.sh ]; then
-          . /usr/share/git/completion/git-prompt.sh
-      fi
-
-      export GIT_PS1_SHOWDIRTYSTATE=1
-      export GIT_PS1_SHOWUNTRACKEDFILES=1
-
-      export PS1='\u@\h:\w$(__git_ps1 " (%s)")\$ '
-
-
-# ---- STARSHIP PROMPT ----
-
-- name: Ensure local bin exists
-  ansible.builtin.file:
-    path: "{{ dev_home }}/.local/bin"
-    state: directory
-    owner: "{{ dev_user }}"
-    group: "{{ dev_user }}"
-    mode: "0755"
 
 - name: Install Starship prompt for user
   ansible.builtin.shell: |
     curl -sS https://starship.rs/install.sh | sh -s -- -y -b "{{ dev_home }}/.local/bin"
   args:
     creates: "{{ dev_home }}/.local/bin/starship"
-  become: false
-
-- name: Ensure Starship config directory exists
-  ansible.builtin.file:
-    path: "{{ dev_home }}/.config"
-    state: directory
-    owner: "{{ dev_user }}"
-    group: "{{ dev_user }}"
-    mode: "0755"
 
 - name: Create minimal Starship config
   ansible.builtin.copy:
@@ -124,20 +67,23 @@
     content: |
       add_newline = false
 
-      [character]
-      success_symbol = "[❯](bold green)"
-      error_symbol = "[❯](bold red)"
+      format = "$directory $git_branch $git_status $character"
 
       [directory]
       truncation_length = 3
       truncate_to_repo = true
+      style = "bold blue"
 
       [git_branch]
       symbol = "🌱 "
       format = "[$symbol$branch]($style) "
 
       [git_status]
-      disabled = false
+      format = "[$all_status$ahead_behind]($style) "
+
+      [character]
+      success_symbol = "[❯](bold green)"
+      error_symbol = "[❯](bold red)"
 
 - name: Enable Starship in bash
   ansible.builtin.copy:
@@ -154,8 +100,29 @@
       fi
 
 
-- name: Ensure .bashrc loads .bashrc.d
-  ansible.builtin.lineinfile:
-    path: "{{ dev_home }}/.bashrc"
-    line: 'for f in ~/.bashrc.d/*.sh; do [ -r "$f" ] && . "$f"; done'
-    state: present
+# ---- TLDR (tealdeer) setup ----
+
+- name: Ensure tealdeer config directory exists
+  ansible.builtin.file:
+    path: "{{ dev_home }}/.config/tealdeer"
+    state: directory
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0755"
+
+- name: Create tealdeer config
+  ansible.builtin.copy:
+    dest: "{{ dev_home }}/.config/tealdeer/config.toml"
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0644"
+    content: |
+      [updates]
+      auto_update = true
+
+- name: Download tealdeer cache
+  become: true
+  become_user: "{{ dev_user }}"
+  ansible.builtin.command:
+    cmd: tldr --update
+  changed_when: false
