@@ -23,3 +23,6 @@ __pycache__/
 *.env
 *.secret
 group_vars/*/vault.yml
+
+# --- Personal
+TODO.md
