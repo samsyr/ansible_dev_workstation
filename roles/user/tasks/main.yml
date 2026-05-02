@@ -1,0 +1,161 @@
+---
+- name: Create personal dev directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0755"
+  loop:
+    - "{{ dev_home }}/dev"
+    - "{{ dev_home }}/bin"
+    - "{{ dev_home }}/tmp"
+    - "{{ dev_home }}/.bashrc.d"
+
+# ---- GIT CONFIG ----
+
+- name: Set git user name
+  ansible.builtin.git_config:
+    name: user.name
+    value: "Sampo Yrjänäinen"
+    scope: global
+  become: false
+
+- name: Set git user email
+  ansible.builtin.git_config:
+    name: user.email
+    value: "sampo.yrjanainen@gmail.com"
+    scope: global
+  become: false
+
+- name: Set default git branch
+  ansible.builtin.git_config:
+    name: init.defaultBranch
+    value: "main"
+    scope: global
+  become: false
+
+# ---- BASH ALIASES ----
+
+- name: Create dev aliases file
+  ansible.builtin.copy:
+    dest: "{{ dev_home }}/.bashrc.d/dev-aliases.sh"
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0644"
+    content: |
+      # Dev aliases
+      alias ll='ls -alF'
+      alias gs='git status'
+      alias ga='git add'
+      alias gc='git commit'
+      alias gp='git push'
+      alias k='kubectl'
+      alias d='docker'
+
+# ---- LOAD .bashrc.d ----
+
+- name: Ensure .bashrc loads .bashrc.d
+  ansible.builtin.lineinfile:
+    path: "{{ dev_home }}/.bashrc"
+    line: 'for f in ~/.bashrc.d/*.sh; do [ -r "$f" ] && . "$f"; done'
+    state: present
+
+
+# ---- GIT PROMPT ----
+
+- name: Ensure git-prompt is available
+  ansible.builtin.apt:
+    name: git
+    state: present
+
+- name: Enable git branch in bash prompt
+  ansible.builtin.copy:
+    dest: "{{ dev_home }}/.bashrc.d/git-prompt.sh"
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0644"
+    content: |
+      # Git branch in prompt
+
+      if [ -f /usr/lib/git-core/git-sh-prompt ]; then
+          . /usr/lib/git-core/git-sh-prompt
+      elif [ -f /usr/share/git/completion/git-prompt.sh ]; then
+          . /usr/share/git/completion/git-prompt.sh
+      fi
+
+      export GIT_PS1_SHOWDIRTYSTATE=1
+      export GIT_PS1_SHOWUNTRACKEDFILES=1
+
+      export PS1='\u@\h:\w$(__git_ps1 " (%s)")\$ '
+
+
+# ---- STARSHIP PROMPT ----
+
+- name: Ensure local bin exists
+  ansible.builtin.file:
+    path: "{{ dev_home }}/.local/bin"
+    state: directory
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0755"
+
+- name: Install Starship prompt for user
+  ansible.builtin.shell: |
+    curl -sS https://starship.rs/install.sh | sh -s -- -y -b "{{ dev_home }}/.local/bin"
+  args:
+    creates: "{{ dev_home }}/.local/bin/starship"
+  become: false
+
+- name: Ensure Starship config directory exists
+  ansible.builtin.file:
+    path: "{{ dev_home }}/.config"
+    state: directory
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0755"
+
+- name: Create minimal Starship config
+  ansible.builtin.copy:
+    dest: "{{ dev_home }}/.config/starship.toml"
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0644"
+    content: |
+      add_newline = false
+
+      [character]
+      success_symbol = "[❯](bold green)"
+      error_symbol = "[❯](bold red)"
+
+      [directory]
+      truncation_length = 3
+      truncate_to_repo = true
+
+      [git_branch]
+      symbol = "🌱 "
+      format = "[$symbol$branch]($style) "
+
+      [git_status]
+      disabled = false
+
+- name: Enable Starship in bash
+  ansible.builtin.copy:
+    dest: "{{ dev_home }}/.bashrc.d/starship.sh"
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0644"
+    content: |
+      # Starship prompt
+      export PATH="$HOME/.local/bin:$PATH"
+
+      if command -v starship >/dev/null 2>&1; then
+        eval "$(starship init bash)"
+      fi
+
+
+- name: Ensure .bashrc loads .bashrc.d
+  ansible.builtin.lineinfile:
+    path: "{{ dev_home }}/.bashrc"
+    line: 'for f in ~/.bashrc.d/*.sh; do [ -r "$f" ] && . "$f"; done'
+    state: present

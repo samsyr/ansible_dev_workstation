@@ -1,0 +1,12 @@
+---
+- name: Configure my Ubuntu desktop
+  hosts: localhost
+  become: false
+
+  vars:
+    dev_user: "sampo"
+    dev_home: "/home/{{ dev_user }}"
+
+  roles:
+    - base
+    - user
