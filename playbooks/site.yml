@@ -13,3 +13,4 @@
   roles:
     - base
     - user
+    - docker
