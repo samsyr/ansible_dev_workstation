@@ -8,8 +8,10 @@
   ansible.builtin.apt:
     name:
       # --- base ---
+      - snap
       - git
       - curl
+      - lynx
       - wget
       - vim
       - htop
@@ -20,6 +22,7 @@
       - build-essential
       - software-properties-common
       - util-linux-extra
+      #- sublime-text
 
       # --- CLI tools ---
       - tree

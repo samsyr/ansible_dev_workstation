@@ -1,0 +1,23 @@
+---
+- name: Install dev CLI tools
+  ansible.builtin.apt:
+    name:
+      - tmux
+      - httpie
+    state: present
+
+# --- lazygit ---
+- name: Install lazygit (latest release)
+  ansible.builtin.shell: |
+    LAZYGIT_VERSION=$(curl -s https://api.github.com/repos/jesseduffield/lazygit/releases/latest | grep -Po '"tag_name": "v\K[^"]*')
+    curl -Lo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+    tar xf /tmp/lazygit.tar.gz -C /tmp
+    install /tmp/lazygit /usr/local/bin
+  args:
+    creates: /usr/local/bin/lazygit
+
+# --- VS Code via snap ---
+- name: Install VS Code
+  ansible.builtin.snap:
+    name: code
+    classic: true
