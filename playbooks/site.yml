@@ -4,18 +4,29 @@
   become: false
 
   vars:
+
+    manage_nvidia_driver: true
+    validate_nvidia: true
+    install_cuda_toolkit: true
+    nvidia_driver_package: "nvidia-driver-595"
+
     dev_user: "sampo"
     dev_home: "/home/{{ dev_user }}"
 
     git_user_name: "Sampo Yrjänäinen"
     git_user_email: "sampo.yrjanainen@gmail.com"
 
+    python_version: "3.11.13"
+    java_version: "21.0.11-tem"
+    gradle_version: "9.5.0"
+    groovy_version: "4.0.31"
+
   roles:
     - base
     - user
     - docker
     - devtools
-    #- jvm
-    #- python-ai
+    - jvm
+    - python-ai
     - security
     - node-web

@@ -1,0 +1,39 @@
+---
+- name: Install NVIDIA driver when explicitly enabled
+  ansible.builtin.apt:
+    name: "{{ nvidia_driver_package }}"
+    state: present
+    update_cache: true
+  when: manage_nvidia_driver | bool
+
+- name: Install CUDA Toolkit when explicitly enabled
+  ansible.builtin.apt:
+    name: cuda-toolkit
+    state: present
+  when: install_cuda_toolkit | bool
+
+- name: Add CUDA environment variables when Toolkit is installed
+  ansible.builtin.copy:
+    dest: /etc/profile.d/cuda.sh
+    mode: "0644"
+    content: |
+      export PATH=/usr/local/cuda/bin:$PATH
+      export LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH:-}
+  when: install_cuda_toolkit | bool
+
+- name: Validate NVIDIA driver
+  ansible.builtin.command: nvidia-smi
+  register: nvidia_smi
+  changed_when: false
+  failed_when: validate_nvidia | bool and nvidia_smi.rc != 0
+
+- name: Show NVIDIA status
+  ansible.builtin.debug:
+    var: nvidia_smi.stdout_lines
+  when: nvidia_smi.rc == 0
+
+- name: Validate CUDA Toolkit when expected
+  ansible.builtin.command: nvcc --version
+  register: nvcc_version
+  changed_when: false
+  failed_when: install_cuda_toolkit | bool and nvcc_version.rc != 0

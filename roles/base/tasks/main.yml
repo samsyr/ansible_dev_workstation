@@ -35,3 +35,7 @@
       - tealdeer
     state: present
     install_recommends: false
+
+- name: Install ChatGPT desktop
+  ansible.builtin.snap:
+    name: chatgpt-desktop

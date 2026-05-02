@@ -1,0 +1,62 @@
+---
+- name: Install NVIDIA driver for Ubuntu 26.04 + RTX 5070
+  hosts: workstation
+  become: false
+
+  vars:
+    install_cuda_toolkit: false
+    nvidia_driver_package: "nvidia-driver-595-open"
+
+  tasks:
+    - name: Ensure this is Ubuntu 26.04
+      ansible.builtin.assert:
+        that:
+          - ansible_facts["distribution"] == "Ubuntu"
+          - ansible_facts["distribution_version"] is version("26.04", "==")
+        fail_msg: "This playbook is intended for Ubuntu 26.04 only."
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Install kernel headers and basic build tools
+      ansible.builtin.apt:
+        name:
+          - build-essential
+          - dkms
+          - linux-headers-generic
+          - pciutils
+        state: present
+
+    - name: Install recommended NVIDIA open driver
+      ansible.builtin.apt:
+        name: "{{ nvidia_driver_package }}"
+        state: present
+
+    - name: Install CUDA Toolkit optionally
+      ansible.builtin.apt:
+        name: cuda-toolkit
+        state: present
+      when: install_cuda_toolkit | bool
+
+    - name: Add CUDA environment variables
+      ansible.builtin.copy:
+        dest: /etc/profile.d/cuda.sh
+        mode: "0644"
+        content: |
+          export PATH=/usr/local/cuda/bin:$PATH
+          export LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH:-}
+
+    - name: Check NVIDIA status
+      ansible.builtin.command: nvidia-smi
+      register: nvidia_smi
+      changed_when: false
+      failed_when: false
+
+    - name: Show NVIDIA status
+      ansible.builtin.debug:
+        var: nvidia_smi.stdout_lines
+
+    - name: Show reboot reminder
+      ansible.builtin.debug:
+        msg: "Reboot after installation if the driver was newly installed. Then run: nvidia-smi"

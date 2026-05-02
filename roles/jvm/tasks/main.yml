@@ -1,0 +1,51 @@
+---
+- name: Install SDKMAN
+  become: true
+  become_user: "{{ dev_user }}"
+  ansible.builtin.shell: |
+    curl -s "https://get.sdkman.io" | bash
+  args:
+    creates: "{{ dev_home }}/.sdkman"
+
+- name: Enable SDKMAN in bash
+  ansible.builtin.copy:
+    dest: "{{ dev_home }}/.bashrc.d/sdkman.sh"
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0644"
+    content: |
+      export SDKMAN_DIR="$HOME/.sdkman"
+      [ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+
+- name: Install Java via SDKMAN
+  become: true
+  become_user: "{{ dev_user }}"
+  ansible.builtin.shell: |
+    export SDKMAN_DIR="{{ dev_home }}/.sdkman"
+    source "$SDKMAN_DIR/bin/sdkman-init.sh"
+    sdk install java "{{ java_version }}"
+  args:
+    executable: /bin/bash
+    creates: "{{ dev_home }}/.sdkman/candidates/java/{{ java_version }}"
+
+- name: Install Gradle via SDKMAN
+  become: true
+  become_user: "{{ dev_user }}"
+  ansible.builtin.shell: |
+    export SDKMAN_DIR="{{ dev_home }}/.sdkman"
+    source "$SDKMAN_DIR/bin/sdkman-init.sh"
+    sdk install gradle "{{ gradle_version }}"
+  args:
+    executable: /bin/bash
+    creates: "{{ dev_home }}/.sdkman/candidates/gradle/{{ gradle_version }}"
+
+- name: Install Groovy via SDKMAN
+  become: true
+  become_user: "{{ dev_user }}"
+  ansible.builtin.shell: |
+    export SDKMAN_DIR="{{ dev_home }}/.sdkman"
+    source "$SDKMAN_DIR/bin/sdkman-init.sh"
+    sdk install groovy "{{ groovy_version }}"
+  args:
+    executable: /bin/bash
+    creates: "{{ dev_home }}/.sdkman/candidates/groovy/{{ groovy_version }}"

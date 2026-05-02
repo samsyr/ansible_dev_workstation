@@ -1,160 +1,414 @@
 # Workstation Setup
 
-Minimal, reproducible Ubuntu development environment using Ansible.
+Modular Ansible setup for provisioning an Ubuntu workstation for software development, AI/ML work, containers, web development, JVM development, and general daily engineering use.
 
-## Goals
+This repository is intentionally role-based. Each role owns one clear responsibility and has its own documentation under `roles/<role>/README.md`.
 
-* Deterministic setup (same result every time)
-* Fast bootstrap on fresh machines
-* Minimal dependencies, no overengineering
-* Incremental, role-based structure
+## Target environment
 
----
+Primary target:
 
-## What this currently sets up
+- Ubuntu 26.04
+- Local workstation installation
+- Developer machine / AI workstation
+- Optional NVIDIA GPU support
 
-### Base system
-
-* Core CLI tools (`git`, `curl`, `ripgrep`, `jq`, etc.)
-* Clean apt-based installation (no unnecessary recommends)
-
-### User environment
-
-* Dev directories (`~/dev`, `~/bin`, etc.)
-* Git configuration
-* Bash modular config (`~/.bashrc.d/`)
-* Useful CLI aliases
-
-### Shell UX
-
-* Starship prompt
-* Git-aware prompt
-* Fast CLI tooling (`rg`, `fd`, `bat`, `fzf`)
-
-### CLI utilities
-
-* `tree`, `jq`, `ripgrep`, `fd`, `bat`, `fzf`, `ncdu`
-* `tldr` (via tealdeer, auto-updating)
-
----
-
-## Project structure
-
-```
-workstation-setup/
-├── ansible.cfg
-├── bootstrap.sh
-├── requirements.yml
-├── inventories/
-│   └── local/
-│       └── hosts.yml
-├── playbooks/
-│   └── site.yml
-└── roles/
-    ├── base/
-    └── user/
-```
-
----
-
-## Setup
-
-Run:
-
-```bash
-./bootstrap.sh
-```
-
-Or manually:
-
-```bash
-ansible-galaxy collection install -r requirements.yml
-sudo ansible-playbook playbooks/site.yml
-```
-
----
-
-## Idempotency
-
-This setup is idempotent.
-
-You can safely run:
-
-```bash
-sudo ansible-playbook playbooks/site.yml
-```
-
-multiple times. No unnecessary changes should occur.
-
----
+The setup is designed to be repeatable and safe to re-run.
 
 ## Design principles
 
-### 1. Infrastructure as code
+- Keep roles small and explicit
+- Avoid hidden cross-role side effects
+- Keep host-specific GPU setup isolated
+- Prefer validation over destructive repair
+- Make the workstation reproducible without making the hardware stack fragile
 
-Everything is defined in Ansible.
-No manual setup should be required.
+## Architecture
 
+```text
+[ Ubuntu OS ]
+      ↓
+[ base + security + user ]
+      ↓
+[ devtools + docker ]
+      ↓
+[ language runtimes: python-ai + node-web + jvm ]
+      ↓
+[ optional host-specific GPU layer: nvidia_cuda ]
+```
+
+## Role overview
+
+| Role | Purpose |
+|---|---|
+| `base` | Core Ubuntu system setup |
+| `security` | Basic workstation hardening |
+| `user` | User environment, directories and shell defaults |
+| `devtools` | General development tooling |
+| `docker` | Docker/container runtime |
+| `python-ai` | Python AI/ML development environment |
+| `node-web` | Node.js and web development tooling |
+| `jvm` | Java/JVM development stack |
+| `nvidia_cuda` | Optional NVIDIA driver / CUDA validation and installation |
+
+For detailed variables, idempotency notes and role-specific behavior, see:
+
+```text
+roles/<role>/README.md
+```
+
+## NVIDIA / CUDA boundary
+
+NVIDIA and CUDA are intentionally isolated in the `nvidia_cuda` role.
+
+The rest of the workstation setup must not silently install or modify GPU drivers.
+
+Reason:
+
+- NVIDIA drivers are kernel- and hardware-specific
+- CUDA Toolkit is optional for most Python/PyTorch workflows
+- GPU stacks can break during kernel or driver changes
+- Python AI tooling should work with CPU fallback when GPU is unavailable
+
+Default policy:
+
+- Validate GPU availability when useful
+- Do not force-install NVIDIA drivers by default
+- Do not install CUDA Toolkit unless explicitly requested
+- Let `python-ai` use GPU if available, otherwise CPU
+
+## Inventory
+
+Local workstation inventory example:
+
+```yaml
+all:
+  children:
+    workstation:
+      hosts:
+        localhost:
+          ansible_connection: local
+          ansible_python_interpreter: /usr/bin/python3
+```
+
+Recommended location:
+
+```text
+inventories/hosts.yml
+```
+
+## Main playbook
+
+Recommended entry point:
+
+```text
+playbooks/workstation.yml
+```
+
+Example:
+
+```yaml
 ---
+- name: Configure Ubuntu workstation
+  hosts: workstation
+  become: false
 
-### 2. Minimalism first
+  roles:
+    - role: base
+      tags: ["base"]
 
-Only essential tools are included.
+    - role: security
+      tags: ["security"]
 
-Add tooling incrementally when needed.
+    - role: user
+      tags: ["user"]
 
----
+    - role: devtools
+      tags: ["devtools"]
 
-### 3. Separation of concerns
+    - role: docker
+      tags: ["docker"]
 
-* `base` → system + CLI tools
-* `user` → user environment + shell + git
+    - role: jvm
+      tags: ["jvm"]
 
----
+    - role: node-web
+      tags: ["node", "web"]
 
-### 4. Reproducibility over convenience
+    - role: nvidia_cuda
+      tags: ["nvidia", "cuda", "gpu"]
 
-Avoid:
+    - role: python-ai
+      tags: ["python", "ai", "ml", "pytorch"]
+```
 
-* global pip installs
-* random scripts
-* machine-specific tweaks
+## Running the full workstation setup
 
-Prefer:
+For local provisioning, run with `sudo`:
 
-* declarative configuration
-* version-controlled setup
+```bash
+sudo ansible-playbook -i inventories/hosts.yml playbooks/workstation.yml --limit workstation
+```
 
----
+## Running selected parts
 
-## Next steps (planned)
+Run only Python AI setup:
 
-### Docker (next milestone)
+```bash
+sudo ansible-playbook -i inventories/hosts.yml playbooks/workstation.yml \
+  --limit workstation \
+  --tags python,ai,ml
+```
 
-* Docker Engine installation
-* Non-root Docker usage (docker group)
-* Docker Compose + Buildx
-* Foundation for reproducible dev environments
+Run only Docker setup:
 
----
+```bash
+sudo ansible-playbook -i inventories/hosts.yml playbooks/workstation.yml \
+  --limit workstation \
+  --tags docker
+```
 
-### Future additions
+Run only NVIDIA/CUDA validation:
 
-* Dev containers / docker-compose stacks
-* Python environment (pyenv / venv strategy)
-* AI/ML tooling (CUDA, PyTorch)
-* Optional desktop tooling (IDE setup)
+```bash
+sudo ansible-playbook -i inventories/hosts.yml playbooks/workstation.yml \
+  --limit workstation \
+  --tags nvidia,cuda,gpu
+```
 
----
+Explicitly install or repair NVIDIA driver:
 
-## Notes
+```bash
+sudo ansible-playbook -i inventories/hosts.yml playbooks/workstation.yml \
+  --limit workstation \
+  --tags nvidia \
+  -e manage_nvidia_driver=true
+```
 
-* Designed for Ubuntu (tested on recent LTS)
-* Uses official package sources where possible
-* Avoids unnecessary abstractions
+Explicitly install CUDA Toolkit:
 
----
+```bash
+sudo ansible-playbook -i inventories/hosts.yml playbooks/workstation.yml \
+  --limit workstation \
+  --tags cuda \
+  -e install_cuda_toolkit=true
+```
 
-## Philosophy
+## Validation
 
-> Build the environment right once, then never think about setup again.
+GPU visibility:
+
+```bash
+nvidia-smi
+```
+
+CUDA compiler, only if CUDA Toolkit is expected:
+
+```bash
+nvcc --version
+```
+
+PyTorch GPU visibility:
+
+```bash
+python - <<'PY'
+import torch
+print("torch:", torch.__version__)
+print("cuda available:", torch.cuda.is_available())
+print("cuda:", torch.version.cuda)
+print("gpu:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else None)
+PY
+```
+
+Docker:
+
+```bash
+docker version
+docker run --rm hello-world
+```
+
+Node:
+
+```bash
+node --version
+npm --version
+```
+
+Java:
+
+```bash
+java --version
+```
+
+## Variables
+
+Common high-level variables are defined inside each role under:
+
+```text
+roles/<role>/defaults/main.yml
+```
+
+Role-specific documentation is available in:
+
+```text
+roles/<role>/README.md
+```
+
+Important GPU-related variables:
+
+```yaml
+manage_nvidia_driver: false
+install_cuda_toolkit: false
+validate_nvidia: true
+nvidia_driver_package: "nvidia-driver-595-open"
+```
+
+Important Python AI variables:
+
+```yaml
+ai_project_dir: "~/dev/ai-sandbox"
+install_pytorch: true
+```
+
+## Idempotency
+
+The repository is intended to be safe to re-run.
+
+Expected behavior:
+
+- Packages are installed with `state: present`
+- Directories are ensured, not recreated destructively
+- Validation commands do not change system state
+- GPU driver installation is conditional
+- CUDA Toolkit installation is conditional
+- User-facing configuration should only change when file content changes
+
+Avoid adding tasks that:
+
+- overwrite local user data
+- uninstall drivers implicitly
+- change GPU stack as a side effect of Python setup
+- require manual interaction during normal runs
+
+## Recommended project structure
+
+```text
+inventories/
+  hosts.yml
+
+playbooks/
+  workstation.yml
+
+roles/
+  base/
+    defaults/main.yml
+    tasks/main.yml
+    README.md
+
+  security/
+    defaults/main.yml
+    tasks/main.yml
+    README.md
+
+  user/
+    defaults/main.yml
+    tasks/main.yml
+    README.md
+
+  devtools/
+    defaults/main.yml
+    tasks/main.yml
+    README.md
+
+  docker/
+    defaults/main.yml
+    tasks/main.yml
+    README.md
+
+  jvm/
+    defaults/main.yml
+    tasks/main.yml
+    README.md
+
+  node-web/
+    defaults/main.yml
+    tasks/main.yml
+    README.md
+
+  nvidia_cuda/
+    defaults/main.yml
+    tasks/main.yml
+    README.md
+
+  python-ai/
+    defaults/main.yml
+    tasks/main.yml
+    README.md
+```
+
+## Troubleshooting
+
+### Ansible cannot find the workstation host
+
+Check inventory:
+
+```bash
+ansible-inventory -i inventories/hosts.yml --list
+```
+
+Test local connection:
+
+```bash
+ansible localhost -i inventories/hosts.yml -m ping
+```
+
+### Sudo / become problems on localhost
+
+For local workstation bootstrap, the simplest approach is usually:
+
+```bash
+sudo ansible-playbook -i inventories/hosts.yml playbooks/workstation.yml --limit workstation
+```
+
+and keep the playbook itself with:
+
+```yaml
+become: false
+```
+
+### GPU is not visible
+
+Check:
+
+```bash
+nvidia-smi
+```
+
+If this fails, fix the NVIDIA/CUDA layer first. The issue is outside `python-ai`.
+
+### PyTorch does not see CUDA
+
+Check whether PyTorch was installed with a CUDA-enabled wheel and whether `nvidia-smi` works.
+
+```bash
+python - <<'PY'
+import torch
+print(torch.cuda.is_available())
+print(torch.version.cuda)
+PY
+```
+
+## Development notes
+
+Good next improvements:
+
+- add `ansible-lint`
+- add Molecule tests for selected roles
+- add CI syntax check
+- add `--check` mode compatibility where practical
+- add per-host variable files under `host_vars/`
+- add separate laptop/workstation/cloud inventories
+
+## License
+
+Personal / internal use by default. Adjust before publishing publicly.
