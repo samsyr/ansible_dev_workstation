@@ -16,7 +16,7 @@
       - vim
       - gedit
       - gnome-tweaks
-      # - caffeine
+      # - caffeine # Don't seems to work
       - htop
       - unzip
       - ca-certificates

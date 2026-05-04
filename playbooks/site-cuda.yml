@@ -7,7 +7,7 @@
     manage_nvidia_driver: true
     validate_nvidia: true
     install_cuda_toolkit: true
-    nvidia_driver_package: "nvidia-driver-595"
+    nvidia_driver_package: "nvidia-driver-595-open"
 
     dev_user: "sampo"
     dev_home: "/home/{{ dev_user }}"
