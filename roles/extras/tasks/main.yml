@@ -1,0 +1,5 @@
+---
+- name: Install Spotify
+  ansible.builtin.snap:
+    name: spotify
+    state: present

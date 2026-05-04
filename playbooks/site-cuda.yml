@@ -1,5 +1,5 @@
 ---
-- name: Configure my Ubuntu desktop
+- name: Configure my Ubuntu desktop with NVIDIA / CUDA support
   hosts: localhost
   become: false
 
@@ -27,6 +27,7 @@
     - devtools
     - extras
     - jvm
+    - nvidia_cuda
     - python-ai
     - security
     - node-web

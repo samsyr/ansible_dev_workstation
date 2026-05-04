@@ -33,7 +33,7 @@
   when: nvidia_smi.rc == 0
 
 - name: Validate CUDA Toolkit when expected
-  ansible.builtin.command: nvcc --version
+  ansible.builtin.command: /usr/local/cuda/bin/nvcc --version
   register: nvcc_version
   changed_when: false
   failed_when: install_cuda_toolkit | bool and nvcc_version.rc != 0
