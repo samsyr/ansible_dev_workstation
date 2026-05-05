@@ -33,12 +33,6 @@
         name: "{{ nvidia_driver_package }}"
         state: present
 
-    - name: Install CUDA Toolkit optionally
-      ansible.builtin.apt:
-        name: cuda-toolkit
-        state: present
-      when: install_cuda_toolkit | bool
-
     - name: Add CUDA environment variables
       ansible.builtin.copy:
         dest: /etc/profile.d/cuda.sh

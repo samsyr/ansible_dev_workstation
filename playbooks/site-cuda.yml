@@ -1,7 +1,7 @@
 ---
 - name: Configure my Ubuntu desktop with NVIDIA / CUDA support
   hosts: localhost
-  become: false
+  become: true
 
   vars:
     manage_nvidia_driver: true
@@ -20,6 +20,8 @@
     gradle_version: "9.5.0"
     groovy_version: "4.0.31"
 
+    cursor_path: /opt/cursor.AppImage
+
   roles:
     - base
     - user
@@ -27,7 +29,7 @@
     - devtools
     - extras
     - jvm
+    - security
     - nvidia_cuda
     - python-ai
-    - security
     - node-web

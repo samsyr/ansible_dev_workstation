@@ -7,7 +7,6 @@
     manage_nvidia_driver: true
     validate_nvidia: true
     install_cuda_toolkit: true
-    nvidia_driver_package: "nvidia-driver-595-open"
 
     dev_user: "sampo"
     dev_home: "/home/{{ dev_user }}"
@@ -19,6 +18,8 @@
     java_version: "21.0.11-tem"
     gradle_version: "9.5.0"
     groovy_version: "4.0.31"
+
+    cursor_path: /opt/cursor.AppImage
 
   roles:
     - base
