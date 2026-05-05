@@ -1,15 +1,16 @@
 # security role
 
-## Purpose
-Apply basic system hardening.
+Installs security-related desktop tooling.
 
-## Variables
-- `ssh_config`
-- `firewall_enabled`
+## What it does
+
+- Installs Bitwarden password manager via snap
+- Warns (does not fail) if the snap install is unavailable
 
 ## Idempotency
-- Config managed declaratively
-- Safe reapplication
+
+Checks `snap list bitwarden` before attempting install. Safe to re-run.
 
 ## Notes
-Avoid aggressive hardening that breaks dev workflows.
+
+Currently focused on desktop tooling rather than system hardening. SSH config and firewall management are not yet implemented.

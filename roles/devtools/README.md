@@ -1,14 +1,24 @@
 # devtools role
 
-## Purpose
-Install general development tools.
+Installs development tools: terminal utilities, editors, and IDEs.
+
+## What it does
+
+- Installs via apt: `tmux`, `httpie`
+- Installs `lazygit` (latest release from GitHub) to `/usr/local/bin`
+- Installs VS Code via snap (classic confinement)
+- Installs VS Code extensions: `GitHub.copilot`, `saoudrizwan.claude-dev`
+- Installs Sublime Text from the official apt repository
+- Downloads the Cursor IDE AppImage (latest, from the Cursor API), places it at `cursor_path`, symlinks it to `/usr/local/bin/cursor`, and creates a `.desktop` entry
 
 ## Variables
-- `devtools_packages`: list of tools (git, cmake, etc.)
+
+| Variable | Default | Description |
+|---|---|---|
+| `cursor_path` | `/opt/cursor.AppImage` | Where the Cursor AppImage is saved |
 
 ## Idempotency
-- Package installs are idempotent
-- Re-running does not reinstall unnecessarily
 
-## Notes
-Shared across all dev environments.
+- `lazygit` uses `creates: /usr/local/bin/lazygit`
+- Cursor download uses `force: false` — skips if file already exists
+- Package installs use `state: present`

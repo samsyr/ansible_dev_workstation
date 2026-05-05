@@ -1,11 +1,11 @@
 # extras role
 
-## Purpose
-Install optional desktop extras.
+Installs optional desktop applications.
 
-## Packages
-- spotify
+## What it does
+
+- Installs Spotify via snap
 
 ## Idempotency
-- Uses snap with state=present
-- Safe to run multiple times
+
+Uses `state: present`. Safe to re-run.
