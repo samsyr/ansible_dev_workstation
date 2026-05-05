@@ -56,3 +56,41 @@
     name: sublime-text
     state: present
     update_cache: true
+
+- name: Ensure /opt directory exists
+  ansible.builtin.file:
+    path: /opt
+    state: directory
+    mode: '0755'
+
+- name: Get Cursor download URL from API
+  ansible.builtin.uri:
+    url: "https://cursor.com/api/download?platform=linux-x64&releaseTrack=latest"
+    method: GET
+    return_content: true
+  register: cursor_api
+
+- name: Download Cursor AppImage
+  ansible.builtin.get_url:
+    url: "{{ (cursor_api.content | from_json).downloadUrl }}"
+    dest: "{{ cursor_path }}"
+    mode: '0755'
+    force: false
+
+- name: Symlink Cursor to /usr/local/bin
+  ansible.builtin.file:
+    src: "{{ cursor_path }}"
+    dest: /usr/local/bin/cursor
+    state: link
+
+- name: Create Cursor desktop entry
+  ansible.builtin.copy:
+    dest: /usr/share/applications/cursor.desktop
+    mode: '0644'
+    content: |
+      [Desktop Entry]
+      Name=Cursor
+      Exec={{ cursor_path }}
+      Icon=utilities-terminal
+      Type=Application
+      Categories=Development;

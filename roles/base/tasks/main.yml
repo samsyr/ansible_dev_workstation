@@ -24,6 +24,7 @@
       - lsb-release
       - build-essential
       - software-properties-common
+      - fonts-dejavu-core
       - util-linux-extra
       - zram-config
 
@@ -42,3 +43,12 @@
 - name: Install ChatGPT desktop
   ansible.builtin.snap:
     name: chatgpt-desktop
+
+- name: Syntax highlight for less
+  ansible.builtin.lineinfile:
+    path: "{{ dev_home }}/.bashrc"
+    line: "alias less='batcat'"
+    state: present
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0644"

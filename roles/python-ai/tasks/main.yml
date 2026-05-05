@@ -1,9 +1,22 @@
 ---
+
+- name: Install AI Python system dependencies
+  ansible.builtin.apt:
+    name:
+      - python3
+      - python3-venv
+      - python3-pip
+      - python3-dev
+      - ffmpeg
+      - libgl1
+      - libglib2.0-0
+    state: present
+    update_cache: true
+
 - name: Install Python build dependencies
   ansible.builtin.apt:
     name:
       - make
-      - build-essential
       - libssl-dev
       - zlib1g-dev
       - libbz2-dev
@@ -119,22 +132,6 @@
   args:
     executable: /bin/bash
     creates: "{{ dev_home }}/dev/ai-sandbox/.venv/.ai-packages-installed"
-
-
-- name: Install AI Python system dependencies
-  ansible.builtin.apt:
-    name:
-      - python3
-      - python3-venv
-      - python3-pip
-      - python3-dev
-      - build-essential
-      - git
-      - ffmpeg
-      - libgl1
-      - libglib2.0-0
-    state: present
-    update_cache: true
 
 - name: Validate GPU is visible before installing GPU AI stack
   ansible.builtin.command: nvidia-smi
