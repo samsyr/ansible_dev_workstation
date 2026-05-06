@@ -3,3 +3,30 @@
   ansible.builtin.snap:
     name: spotify
     state: present
+
+- name: Copy wallpaper
+  ansible.builtin.copy:
+    src: "tiger_and_humming_bird.jpg"
+    dest: "{{ wallpaper_dest }}"
+    owner: "{{ dev_user }}"
+    group: "{{ dev_user }}"
+    mode: "0644"
+
+- name: Get dev_user uid
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ dev_user }}"
+
+- name: Set wallpaper for GNOME
+  become: true
+  become_user: "{{ dev_user }}"
+  environment:
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ getent_passwd[dev_user][1] }}/bus"
+    XDG_RUNTIME_DIR: "/run/user/{{ getent_passwd[dev_user][1] }}"
+  ansible.builtin.command:
+    cmd: gsettings set org.gnome.desktop.background {{ item }} 'file://{{ wallpaper_dest }}'
+  loop:
+    - picture-uri
+    - picture-uri-dark
+  changed_when: true
+

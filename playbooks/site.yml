@@ -22,12 +22,12 @@
     cursor_path: /opt/cursor.AppImage
 
   roles:
-    - base
-    - user
-    - docker
-    - devtools
-    - extras
-    - jvm
-    - python-ai
-    - security
-    - node-web
+    - { role: base, tags: [base] }
+    - { role: user, tags: [user] }
+    - { role: docker, tags: [docker] }
+    - { role: devtools, tags: [devtools] }
+    - { role: extras, tags: [extras] }
+    - { role: jvm, tags: [jvm] }
+    - { role: python-ai, tags: [python-ai] }
+    - { role: security, tags: [security] }
+    - { role: node-web, tags: [node-web] }

@@ -22,6 +22,10 @@
 
     cursor_path: /opt/cursor.AppImage
 
+    wallpaper_src: tiger_and_humming_bird.jpg
+    wallpaper_dest: /home/sampo/Pictures/tiger_and_humming_bird.jpg
+
+
   roles:
     - base
     - user
@@ -33,3 +37,16 @@
     - nvidia_cuda
     - python-ai
     - node-web
+
+  post_tasks:
+    - name: Run CUDA performance tests
+      ansible.builtin.shell:
+        cmd: bash cuda-performance-tests/cuda-tests.sh
+        chdir: "{{ playbook_dir }}/.."
+      become: false
+      register: cuda_test_output
+      failed_when: false
+
+    - name: Show CUDA test output
+      ansible.builtin.debug:
+        msg: "{{ cuda_test_output.stdout_lines }}"

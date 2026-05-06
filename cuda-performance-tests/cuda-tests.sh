@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+pip3 install torch --index-url https://download.pytorch.org/whl/cu128
+
 set -euo pipefail
 
 echo "== System =="
