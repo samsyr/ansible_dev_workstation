@@ -1,4 +1,4 @@
-# python-ai role
+# python_ai role
 
 Sets up a Python AI/ML development environment using pyenv and uv, with a project venv pre-loaded with PyTorch and common ML libraries.
 

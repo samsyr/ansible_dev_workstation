@@ -37,9 +37,11 @@
   become: true
   become_user: "{{ dev_user }}"
   ansible.builtin.shell: |
+    set -o pipefail
     curl https://pyenv.run | bash
   args:
     creates: "{{ dev_home }}/.pyenv"
+    executable: /bin/bash
 
 - name: Enable pyenv in bash
   ansible.builtin.copy:
@@ -60,11 +62,13 @@
   become: true
   become_user: "{{ dev_user }}"
   ansible.builtin.shell: |
+    set -o pipefail
     curl -LsSf https://astral.sh/uv/install.sh | sh
   args:
     creates: "{{ dev_home }}/.local/bin/uv"
+    executable: /bin/bash
 
-- name: Ensure Python {{ python_version }} is installed with pyenv
+- name: Ensure pyenv has Python {{ python_version }}
   become: true
   become_user: "{{ dev_user }}"
   ansible.builtin.shell: |
@@ -135,11 +139,11 @@
 
 - name: Validate GPU is visible before installing GPU AI stack
   ansible.builtin.command: nvidia-smi
-  register: ai_nvidia_smi
+  register: python_ai_nvidia_smi
   changed_when: false
   failed_when: false
 
 - name: Warn if NVIDIA GPU is not available
   ansible.builtin.debug:
     msg: "nvidia-smi failed. PyTorch GPU acceleration may not work."
-  when: ai_nvidia_smi.rc != 0
+  when: python_ai_nvidia_smi.rc != 0

@@ -45,9 +45,9 @@ roles/
   extras/         # Spotify
   jvm/            # SDKMAN, Java 21, Gradle, Groovy
   nvidia_cuda/    # NVIDIA driver, CUDA Toolkit, environment, validation
-  python-ai/      # pyenv, uv, Python 3.11, AI venv (PyTorch, scikit-learn, etc.)
+  python_ai/      # pyenv, uv, Python 3.11, AI venv (PyTorch, scikit-learn, etc.)
   security/       # Bitwarden desktop
-  node-web/       # nvm, Node.js LTS, pnpm
+  node_web/       # nvm, Node.js LTS, pnpm
 ```
 
 ## Key variables
@@ -62,10 +62,10 @@ Defined in `playbooks/site-cuda.yml` and `playbooks/site.yml`:
 | `gradle_version` | `9.5.0` | SDKMAN Gradle version |
 | `groovy_version` | `4.0.31` | SDKMAN Groovy version |
 | `cursor_path` | `/opt/cursor.AppImage` | Cursor IDE install path |
-| `manage_nvidia_driver` | `true` in cuda playbook | Install the NVIDIA driver |
-| `install_cuda_toolkit` | `true` in cuda playbook | Install CUDA Toolkit |
-| `validate_nvidia` | `true` | Run `nvidia-smi` check |
-| `nvidia_driver_package` | `nvidia-driver-595-open` | Driver package name |
+| `nvidia_cuda_manage_driver` | `true` in cuda playbook | Install the NVIDIA driver |
+| `nvidia_cuda_install_toolkit` | `true` in cuda playbook | Install CUDA Toolkit |
+| `nvidia_cuda_validate` | `true` | Run `nvidia-smi` check |
+| `nvidia_cuda_driver_package` | `nvidia-driver-595-open` | Driver package name |
 
 ## What each role does
 
@@ -83,11 +83,11 @@ Defined in `playbooks/site-cuda.yml` and `playbooks/site.yml`:
 
 **nvidia_cuda** — conditionally installs the NVIDIA driver and CUDA Toolkit, writes CUDA env vars to `/etc/profile.d/cuda.sh`, and validates the install with `nvidia-smi` and `nvcc`.
 
-**python-ai** — installs pyenv and uv for the user, installs Python 3.11, creates an AI sandbox venv at `~/dev/ai-sandbox`, and installs PyTorch (CUDA 12.8 wheel), ultralytics, scikit-learn, opencv, numpy, pandas, matplotlib, and JupyterLab.
+**python_ai** — installs pyenv and uv for the user, installs Python 3.11, creates an AI sandbox venv at `~/dev/ai-sandbox`, and installs PyTorch (CUDA 12.8 wheel), ultralytics, scikit-learn, opencv, numpy, pandas, matplotlib, and JupyterLab.
 
 **security** — installs Bitwarden desktop via snap.
 
-**node-web** — installs nvm for the user, installs Node.js LTS, and installs pnpm globally.
+**node_web** — installs nvm for the user, installs Node.js LTS, and installs pnpm globally.
 
 ## Running individual parts
 
@@ -98,10 +98,10 @@ Override variables at the command line:
 sudo ansible-playbook playbooks/nvidia-rtx5070-ubuntu2604.yml
 
 # Run full playbook but skip NVIDIA driver install
-sudo ansible-playbook playbooks/site-cuda.yml -e manage_nvidia_driver=false
+sudo ansible-playbook playbooks/site-cuda.yml -e nvidia_cuda_manage_driver=false
 
 # Run full playbook but skip CUDA Toolkit
-sudo ansible-playbook playbooks/site-cuda.yml -e install_cuda_toolkit=false
+sudo ansible-playbook playbooks/site-cuda.yml -e nvidia_cuda_install_toolkit=false
 ```
 
 ## Validation

@@ -41,7 +41,7 @@
     install_recommends: false
 
 - name: Install ChatGPT desktop
-  ansible.builtin.snap:
+  community.general.snap:
     name: chatgpt-desktop
 
 - name: Syntax highlight for less

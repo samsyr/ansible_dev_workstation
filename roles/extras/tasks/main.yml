@@ -1,6 +1,6 @@
 ---
 - name: Install Spotify
-  ansible.builtin.snap:
+  community.general.snap:
     name: spotify
     state: present
 
@@ -29,4 +29,3 @@
     - picture-uri
     - picture-uri-dark
   changed_when: true
-

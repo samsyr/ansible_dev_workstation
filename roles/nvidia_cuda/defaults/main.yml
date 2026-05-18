@@ -1,5 +1,5 @@
 ---
-manage_nvidia_driver: false
-install_cuda_toolkit: false
-validate_nvidia: true
-nvidia_driver_package: "nvidia-driver-595-open"
+nvidia_cuda_manage_driver: false
+nvidia_cuda_install_toolkit: false
+nvidia_cuda_validate: true
+nvidia_cuda_driver_package: "nvidia-driver-595-open"

@@ -4,10 +4,10 @@
   become: true
 
   vars:
-    manage_nvidia_driver: true
-    validate_nvidia: true
-    install_cuda_toolkit: true
-    nvidia_driver_package: "nvidia-driver-595-open"
+    nvidia_cuda_manage_driver: true
+    nvidia_cuda_validate: true
+    nvidia_cuda_install_toolkit: true
+    nvidia_cuda_driver_package: "nvidia-driver-595-open"
 
     dev_user: "sampo"
     dev_home: "/home/{{ dev_user }}"
@@ -35,18 +35,19 @@
     - jvm
     - security
     - nvidia_cuda
-    - python-ai
-    - node-web
+    - python_ai
+    - node_web
     - media
 
   post_tasks:
     - name: Run CUDA performance tests
-      ansible.builtin.shell:
+      ansible.builtin.command:
         cmd: bash cuda-performance-tests/cuda-tests.sh
         chdir: "{{ playbook_dir }}/.."
       become: false
       register: cuda_test_output
       failed_when: false
+      changed_when: false
 
     - name: Show CUDA test output
       ansible.builtin.debug:

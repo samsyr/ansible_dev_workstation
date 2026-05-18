@@ -1,4 +1,4 @@
-# node-web role
+# node_web role
 
 Installs Node.js via nvm and pnpm as the global package manager.
 

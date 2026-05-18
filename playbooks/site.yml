@@ -4,9 +4,9 @@
   become: true
 
   vars:
-    manage_nvidia_driver: true
-    validate_nvidia: true
-    install_cuda_toolkit: true
+    nvidia_cuda_manage_driver: true
+    nvidia_cuda_validate: true
+    nvidia_cuda_install_toolkit: true
 
     dev_user: "sampo"
     dev_home: "/home/{{ dev_user }}"
@@ -28,7 +28,7 @@
     - { role: devtools, tags: [devtools] }
     - { role: extras, tags: [extras] }
     - { role: jvm, tags: [jvm] }
-    - { role: python-ai, tags: [python-ai] }
+    - { role: python_ai, tags: [python_ai] }
     - { role: security, tags: [security] }
-    - { role: node-web, tags: [node-web] }
+    - { role: node_web, tags: [node_web] }
     - { role: media, tags: [media] }

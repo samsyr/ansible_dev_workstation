@@ -57,9 +57,11 @@
   become: true
   become_user: "{{ dev_user }}"
   ansible.builtin.shell: |
+    set -o pipefail
     curl -sS https://starship.rs/install.sh | sh -s -- -y -b "{{ dev_home }}/.local/bin"
   args:
     creates: "{{ dev_home }}/.local/bin/starship"
+    executable: /bin/bash
 
 - name: Create minimal Starship config
   ansible.builtin.copy:

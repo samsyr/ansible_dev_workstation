@@ -16,10 +16,10 @@ Manages the NVIDIA GPU driver and CUDA Toolkit. All installation is opt-in via v
 
 | Variable | Default | Description |
 |---|---|---|
-| `manage_nvidia_driver` | `false` | Install the NVIDIA driver package |
-| `install_cuda_toolkit` | `false` | Install CUDA Toolkit and write env vars |
-| `validate_nvidia` | `true` | Fail the play if `nvidia-smi` is not working |
-| `nvidia_driver_package` | `nvidia-driver-595-open` | apt package name for the driver |
+| `nvidia_cuda_manage_driver` | `false` | Install the NVIDIA driver package |
+| `nvidia_cuda_install_toolkit` | `false` | Install CUDA Toolkit and write env vars |
+| `nvidia_cuda_validate` | `true` | Fail the play if `nvidia-smi` is not working |
+| `nvidia_cuda_driver_package` | `nvidia-driver-595-open` | apt package name for the driver |
 
 ## Idempotency
 

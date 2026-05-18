@@ -24,7 +24,7 @@
     install_recommends: false
 
 - name: Remove snap OBS Studio (replaced by deb from PPA for virtual camera support)
-  ansible.builtin.snap:
+  community.general.snap:
     name: obs-studio
     state: absent
 
@@ -42,8 +42,11 @@
     force: false
 
 - name: Add OBS Studio PPA
+  vars:
+    obs_release: "{{ ansible_facts['distribution_release'] }}"
+    obs_ppa: "https://ppa.launchpadcontent.net/obsproject/obs-studio/ubuntu"
   ansible.builtin.apt_repository:
-    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/obs-studio.asc] https://ppa.launchpadcontent.net/obsproject/obs-studio/ubuntu {{ ansible_facts['distribution_release'] }} main"
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/obs-studio.asc] {{ obs_ppa }} {{ obs_release }} main"
     state: present
     filename: obs-studio
 
