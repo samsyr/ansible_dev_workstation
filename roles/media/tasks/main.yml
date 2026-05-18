@@ -1,0 +1,70 @@
+---
+- name: Accept EULA for ubuntu-restricted-extras
+  ansible.builtin.debconf:
+    name: "{{ item.name }}"
+    question: "{{ item.question }}"
+    value: "{{ item.value }}"
+    vtype: "{{ item.vtype }}"
+  loop:
+    - { name: "ttf-mscorefonts-installer", question: "msttcorefonts/accepted-mscorefonts-eula", value: "true", vtype: "boolean" }
+
+- name: Install media applications and codecs
+  ansible.builtin.apt:
+    name:
+      - vlc
+      - mpv
+      - audacity
+      - gimp
+      - inkscape
+      - kdenlive
+      - handbrake
+      - ffmpeg
+      - ubuntu-restricted-extras
+    state: present
+    install_recommends: false
+
+- name: Remove snap OBS Studio (replaced by deb from PPA for virtual camera support)
+  ansible.builtin.snap:
+    name: obs-studio
+    state: absent
+
+- name: Ensure apt keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Fetch OBS Studio PPA signing key
+  ansible.builtin.get_url:
+    url: "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xBC7345F522079769F5BBE987EFC71127F425E228&options=mr"
+    dest: /etc/apt/keyrings/obs-studio.asc
+    mode: "0644"
+    force: false
+
+- name: Add OBS Studio PPA
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/obs-studio.asc] https://ppa.launchpadcontent.net/obsproject/obs-studio/ubuntu {{ ansible_facts['distribution_release'] }} main"
+    state: present
+    filename: obs-studio
+
+- name: Install OBS Studio and v4l2loopback
+  ansible.builtin.apt:
+    name:
+      - obs-studio
+      - v4l2loopback-dkms
+      - v4l2loopback-utils
+    state: present
+    update_cache: true
+
+- name: Ensure v4l2loopback loads at boot
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/v4l2loopback.conf
+    content: "v4l2loopback\n"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Load v4l2loopback module now
+  community.general.modprobe:
+    name: v4l2loopback
+    state: present

@@ -6,6 +6,25 @@
       - httpie
     state: present
 
+# --- GitHub CLI ---
+- name: Add GitHub CLI GPG key
+  ansible.builtin.get_url:
+    url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
+    dest: /etc/apt/trusted.gpg.d/githubcli-archive-keyring.gpg
+    mode: "0644"
+
+- name: Add GitHub CLI repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ ansible_architecture | replace('x86_64', 'amd64') | replace('aarch64', 'arm64') }} signed-by=/etc/apt/trusted.gpg.d/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
+    state: present
+    filename: github-cli
+
+- name: Install GitHub CLI
+  ansible.builtin.apt:
+    name: gh
+    state: present
+    update_cache: true
+
 # --- lazygit ---
 - name: Install lazygit (latest release)
   ansible.builtin.shell: |

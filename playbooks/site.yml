@@ -31,3 +31,4 @@
     - { role: python-ai, tags: [python-ai] }
     - { role: security, tags: [security] }
     - { role: node-web, tags: [node-web] }
+    - { role: media, tags: [media] }

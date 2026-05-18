@@ -37,6 +37,7 @@
     - nvidia_cuda
     - python-ai
     - node-web
+    - media
 
   post_tasks:
     - name: Run CUDA performance tests
