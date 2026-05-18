@@ -4,7 +4,14 @@
     name:
       - tmux
       - httpie
+      - python3-pip
     state: present
+
+- name: Install shell-gpt
+  ansible.builtin.pip:
+    name: shell-gpt
+    executable: pip3
+    extra_args: --break-system-packages
 
 # --- GitHub CLI ---
 - name: Add GitHub CLI GPG key
